@@ -9,7 +9,7 @@ COPY pom.xml .
 
 RUN mvn clean package -DskipTests
 
-COPY src .
+COPY . .
 
 # Runtime stage
 FROM eclipse-temurin:17-jdk-jammy
