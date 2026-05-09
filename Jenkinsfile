@@ -57,24 +57,27 @@ pipeline {
             }
         }
 
-        /* =========================================================
-           MAVEN BUILD
-        ========================================================= */
-        stage('Maven Build') {
+      /* =========================================================
+         MAVEN BUILD
+      ========================================================= */
+       stage('Maven Build') {
+          
+          agent { label 'workernode2' }
+          
+          steps {
 
-            agent { label 'workernode2' }
+             echo "Starting Maven build..."
 
-            steps {
-
-                echo "Starting Maven build..."
-
-                unstash 'source-code'
-               
-                
-
-                sh './mvnw clean package -DskipTests'
-            }
-        }
+             unstash 'source-code'
+             
+             sh '''
+             chmod +x mvnw
+             
+             ./mvnw clean package -DskipTests
+             '''
+          
+          }
+       }
 
         /* =========================================================
            SONARQUBE ANALYSIS
