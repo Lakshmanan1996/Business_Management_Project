@@ -31,6 +31,10 @@ pipeline {
         IMAGE_NAME     = "${DOCKERHUB_USER}/${APP_NAME}"
 
         SONAR_PROJECT  = "bmp"
+       
+       JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
+       
+       PATH = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
     stages {
