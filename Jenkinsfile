@@ -50,9 +50,17 @@ pipeline {
 
                 echo "Checking out source code..."
 
-                git branch: 'master',
-                    url: "${GIT_REPO}"
+                checkout([$class: 'GitSCM',
+                    branches: [[name: 'master']],
+                    userRemoteConfigs: [[url: "${GIT_REPO}"]]
+                ])
+            }
+        }
 
+       /* ===================== STASH SOURCE ===================== */
+        stage('Stash Source') {
+            agent { label 'workernode1' }
+            steps {
                 stash includes: '**/*', name: 'source-code'
             }
         }
@@ -74,11 +82,9 @@ pipeline {
 
              unstash 'source-code'
              
-             sh '''
-             chmod +x mvnw
-             
-             ./mvnw clean package -DskipTests
-             '''
+             sh ' chmod +x mvnw'
+
+             sh 'mvn clean install -DskipTests'
           
           }
        }
