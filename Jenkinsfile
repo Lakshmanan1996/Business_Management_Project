@@ -63,6 +63,10 @@ pipeline {
        stage('Maven Build') {
           
           agent { label 'workernode2' }
+
+          tools {
+                maven 'maven'
+            }
           
           steps {
 
