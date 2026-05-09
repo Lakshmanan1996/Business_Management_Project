@@ -69,7 +69,9 @@ pipeline {
                 echo "Starting Maven build..."
 
                 unstash 'source-code'
-
+               
+                sh 'ls -la'
+               
                 sh 'chmod +x mvnw'
 
                 sh './mvnw clean package -DskipTests'
