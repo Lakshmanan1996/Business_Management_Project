@@ -31,10 +31,10 @@ pipeline {
         IMAGE_NAME     = "${DOCKERHUB_USER}/${APP_NAME}"
 
         SONAR_PROJECT  = "bmp"
-       
-       JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
-       
-       PATH = "${JAVA_HOME}/bin:${env.PATH}"
+
+        JAVA_HOME      = "/usr/lib/jvm/java-21-openjdk-amd64"
+
+        PATH           = "${JAVA_HOME}/bin:${env.PATH}"
     }
 
     stages {
@@ -50,44 +50,48 @@ pipeline {
 
                 echo "Checking out source code..."
 
-                checkout([$class: 'GitSCM',
-                    branches: [[name: 'master']],
-                    userRemoteConfigs: [[url: "${GIT_REPO}"]]
-                ])
+                git branch: 'master',
+                    url: "${GIT_REPO}"
             }
         }
 
-       /* ===================== STASH SOURCE ===================== */
+        /* =========================================================
+           STASH SOURCE
+        ========================================================= */
         stage('Stash Source') {
+
             agent { label 'workernode1' }
+
             steps {
+
                 stash includes: '**/*', name: 'source-code'
             }
         }
 
-      /* =========================================================
-         MAVEN BUILD
-      ========================================================= */
-       stage('Maven Build') {
-          
-          agent { label 'workernode2' }
+        /* =========================================================
+           MAVEN BUILD
+        ========================================================= */
+        stage('Maven Build') {
 
-          tools {
+            agent { label 'workernode2' }
+
+            tools {
                 maven 'maven'
             }
-          
-          steps {
 
-             echo "Starting Maven build..."
+            steps {
 
-             unstash 'source-code'
-             
-             sh ' chmod +x mvnw'
+                echo "Starting Maven build..."
 
-             sh 'mvn clean install -DskipTests'
-          
-          }
-       }
+                unstash 'source-code'
+
+                sh '''
+                chmod +x mvnw
+
+                mvn clean install -DskipTests
+                '''
+            }
+        }
 
         /* =========================================================
            SONARQUBE ANALYSIS
@@ -95,6 +99,10 @@ pipeline {
         stage('SonarQube Analysis') {
 
             agent { label 'workernode2' }
+
+            tools {
+                maven 'maven'
+            }
 
             steps {
 
@@ -105,7 +113,7 @@ pipeline {
                 withSonarQubeEnv('sonarqube') {
 
                     sh """
-                    ./mvnw sonar:sonar \
+                    mvn sonar:sonar \
                     -Dsonar.projectKey=${SONAR_PROJECT} \
                     -Dsonar.projectName=${SONAR_PROJECT}
                     """
@@ -145,7 +153,7 @@ pipeline {
 
             steps {
 
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
 
                     waitForQualityGate abortPipeline: true
                 }
@@ -167,6 +175,7 @@ pipeline {
 
                 sh """
                 docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+
                 docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${IMAGE_NAME}:latest
                 """
             }
@@ -217,6 +226,7 @@ pipeline {
 
                     sh """
                     docker push ${IMAGE_NAME}:${BUILD_NUMBER}
+
                     docker push ${IMAGE_NAME}:latest
                     """
                 }
@@ -236,6 +246,7 @@ pipeline {
 
                 sh """
                 docker rmi ${IMAGE_NAME}:${BUILD_NUMBER} || true
+
                 docker rmi ${IMAGE_NAME}:latest || true
                 """
             }
@@ -259,7 +270,7 @@ pipeline {
 
         always {
 
-            cleanWs()
+            echo 'Pipeline execution completed.'
         }
     }
 }
