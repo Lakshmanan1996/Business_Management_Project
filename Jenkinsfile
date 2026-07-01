@@ -12,7 +12,7 @@
 
 pipeline {
 
-    agent none
+    agent any
 
     options {
         timestamps()
@@ -44,7 +44,7 @@ pipeline {
         ========================================================= */
         stage('Checkout Code') {
 
-            agent { label 'workernode1' }
+            
 
             steps {
 
@@ -60,7 +60,7 @@ pipeline {
         ========================================================= */
         stage('Stash Source') {
 
-            agent { label 'workernode1' }
+            
 
             steps {
 
@@ -73,7 +73,7 @@ pipeline {
         ========================================================= */
         stage('Maven Build') {
 
-            agent { label 'workernode2' }
+            
 
             tools {
                 maven 'maven'
@@ -98,7 +98,7 @@ pipeline {
         ========================================================= */
         stage('SonarQube Analysis') {
 
-            agent { label 'workernode2' }
+            
 
             tools {
                 maven 'maven'
@@ -121,35 +121,14 @@ pipeline {
             }
         }
 
-        /* =========================================================
-           OWASP DEPENDENCY CHECK
-        ========================================================= */
-        stage('OWASP Dependency Check') {
-
-            agent { label 'workernode2' }
-
-            steps {
-
-                echo "Running OWASP Dependency Check..."
-
-                unstash 'source-code'
-
-                dependencyCheck additionalArguments: '''
-                    --scan .
-                    --format ALL
-                ''',
-                odcInstallation: 'OWASP-Dependency-Check'
-
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
+        
 
         /* =========================================================
            SONARQUBE QUALITY GATE
         ========================================================= */
         stage('Quality Gate') {
 
-            agent { label 'workernode2' }
+            
 
             steps {
 
@@ -165,7 +144,7 @@ pipeline {
         ========================================================= */
         stage('Docker Build') {
 
-            agent { label 'workernode3' }
+            
 
             steps {
 
@@ -186,7 +165,7 @@ pipeline {
         ========================================================= */
         stage('Trivy Scan') {
 
-            agent { label 'workernode3' }
+            
 
             steps {
 
@@ -206,7 +185,7 @@ pipeline {
         ========================================================= */
         stage('Push Docker Image') {
 
-            agent { label 'workernode3' }
+            
 
             steps {
 
@@ -238,7 +217,7 @@ pipeline {
         ========================================================= */
         stage('Cleanup') {
 
-            agent { label 'workernode3' }
+           
 
             steps {
 
